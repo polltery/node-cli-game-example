@@ -27,6 +27,8 @@ How to run?
 2. `npm install`
 3. `node app.js`
 
+![Preview](./assets/example.gif?raw=true "Preview")
+
 About the development
 ---
 This is a hobby project inspired by Gwent cards and was supposed to be played using those until I decided to make this CLI game. I will add more info here as the development continues. Currently the game does have some on going bugs e.g. player indicator on the map not in sync, game closes on move when character is not in sync with map display, etc. ¯\\\_(ツ)_/¯ However, it still gives a good idea on how to make a CLI application.
