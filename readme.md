@@ -20,3 +20,17 @@ Friends
 ---
 - Triss Merigold : If you encounter a monster next, you don't have to fight it. Join's your party.
 - Yennefer of Vengerberg : Yennefer opens a portal, Your next step will be to a random position. She can Join your party.
+
+How to run?
+---
+1. clone repo
+2. `npm install`
+3. `node app.js`
+
+About the development
+---
+This is a hobby project inspired by Gwent cards and was supposed to be played using those until I decided to make this CLI game. I will add more info here as the development continues. Currently the game does have some on going bugs e.g. player indicator on the map not in sync, game closes on move when character is not in sync with map display, etc. ¯\\\_(ツ)_/¯ However, it still gives a good idea on how to make a CLI application.
+
+- `lib/` : Contains data about all the cards.
+- `battle-engine.js` : Mainly responsible for battle stages.
+- `app.js` : entry point of the game, does everything possible cause why not.
