@@ -5,7 +5,7 @@ About the game
 You are Geralt of Rivia, Ciri has ran away, find her!
 
 ---
-Basic Rules
+Basic Rules (Can be played using Gwent Cards)
 ---
 - You can move **1 step per turn** and you have **15 POWER**
 - The map is laid out randomly, each card is kept face down, each card is a tile on which you move.
