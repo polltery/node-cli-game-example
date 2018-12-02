@@ -36,3 +36,5 @@ This is a hobby project inspired by Gwent cards and was supposed to be played us
 - `lib/` : Contains data about all the cards.
 - `battle-engine.js` : Mainly responsible for battle stages.
 - `app.js` : entry point of the game, does everything possible cause why not.
+- `config.js` : Used for default values and map size initalization.
+- `debug.js` : Used for pretty printing stuff on the console.
