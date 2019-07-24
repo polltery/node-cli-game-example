@@ -248,7 +248,7 @@ function movePlayerTowards(direction){
                 player.prev_x = player.x;
                 player.x = player.x+1;
                 break;
-            case 'S' :
+            case 'W' :
                 player.prev_x = player.x;
                 player.x = player.x-1;
                 break;
