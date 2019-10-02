@@ -71,7 +71,7 @@ function setupGame(){
 
 function startGame(isNextTurn){
     //debug.show2dArrayContents(map);
-    console.log('TURN : '+ isNextTurn ? ++player.turn : player.turn);
+    console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
     displayMap(map);
     displayPosition(player);
     displayMovementOptions(getMovementOptions(player),player);
@@ -151,7 +151,7 @@ function endGame(){
 function postBattleEncounter(){
     if(player.end === false){
         if(player.resolve === false){
-            console.log('TURN : '+player.turn);
+            console.log('TURN : '+ (++player.turn));
             console.log('You conflict with '+colors.bold(player.conflict.enemy.name)+' is still not resolved');
             battleEngine.initateBattle(player,player.conflict.enemy,postBattleEncounter);
         }else{
@@ -213,24 +213,39 @@ function postBossEncounter(reward){
 }
 
 function movePlayerTowards(direction){
-    if(direction.length === 1){
-        switch(direction){
-            case 'S' : 
-                player.prev_y = player.y++;
-                break;
-            case 'N' : 
-                player.prev_y = player.y--;
-                break;
-            case 'E' :
-                player.prev_x = player.x++;
-                break;
-            case 'W' :
-                player.prev_x = player.x--;
-                break;
-        }
-    }else{
-        movePlayerTowards(direction.substring(0,1));
-        movePlayerTowards(direction.substring(1,2));
+    switch(direction){
+        case 'S' : 
+            player.prev_x = player.x;
+            player.prev_y = player.y++;
+            break;
+        case 'N' : 
+            player.prev_x = player.x;
+            player.prev_y = player.y--;
+            break;
+        case 'E' :
+            player.prev_x = player.x++;
+            player.prev_y = player.y;
+            break;
+        case 'W' :
+            player.prev_x = player.x--;
+            player.prev_y = player.y;
+            break;
+        case 'NE':
+            player.prev_x = player.x++;
+            player.prev_y = player.y--;
+            break;
+        case 'NW':
+            player.prev_x = player.x--;
+            player.prev_y = player.y--;
+            break;
+        case 'SE':
+            player.prev_x = player.x++;
+            player.prev_y = player.y++;
+            break;
+        case 'SW':
+            player.prev_x = player.x--;
+            player.prev_y = player.y++;
+            break;
     }
 }
 
@@ -251,7 +266,7 @@ function getObjectFromCurrentPosition(x,y,direction){
         case 'SE' : 
             return map[x+1][y+1];
         case 'SW' :
-            return map[x-1][y-1];
+            return map[x-1][y+1];
         default:
             return map[x][y];
     }
