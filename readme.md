@@ -23,7 +23,6 @@ Friends (To be implemented)
 
 How to run?
 ---
-This project uses babel with nodemon now,
 1. clone repo
 2. `npm install`
 3. `npm run serve`
