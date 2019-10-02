@@ -70,7 +70,7 @@ function setupGame(){
 }
 
 function startGame(isNextTurn){
-    //debug.show2dArrayContents(map);
+    debug.show2dArrayContents(map);
     console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
     displayMap(map);
     displayPosition(player);
@@ -92,6 +92,7 @@ function startGame(isNextTurn){
                 break;
             case 'safe' :
                 movePlayerTowards(result.question);
+                updateTile(nextTile);
                 encounter(nextTile);
                 break;
             case 'special' :
@@ -106,18 +107,13 @@ function startGame(isNextTurn){
                 break;
             case 'monster' :
                 movePlayerTowards(result.question);
-                var tile = nextTile;
-                if(tile.explored === false){
-                    updateTile(tile);
-                    if(player.freePass === 0){
-                        encounter(tile.aquiredBy);
-                    }
+                updateTile(nextTile);
+                if(player.freePass === 0){
+                    encounter(nextTile.aquiredBy);
                 }else{
-                    if(tile.type !== "safe" && player.freePass === 0){
-                        encounter(tile.aquiredBy);
-                    }else{
-                        startGame(true);
-                    }
+                    console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
+                    updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                    startGame(true);
                 }
                 break;
             case 'boss' : 
@@ -129,7 +125,7 @@ function startGame(isNextTurn){
                 }else{
                     startGame(true);
                 }
-            break;
+                break;
         }
     });
 }
@@ -404,7 +400,7 @@ function createMapFromArray(type){
             var sample = samples.pop();
                 map[i][j] = {
                     aquiredBy : sample,
-                    type : sample.type,
+                    type : sample === undefined ? 'safe' : sample.type,
                     explored : false
                 };
             }
