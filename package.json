@@ -4,16 +4,13 @@
   "description": "A game based on the witcher universe made for CLI",
   "main": "app.js",
   "dependencies": {
+    "cli-spinner": "^0.2.10",
     "colors": "^1.1.2",
     "foreach-combination": "^1.0.0",
-    "prompt": "^1.0.0",
-    "lodash": "^4.14.2"
+    "lodash": "^4.14.2",
+    "prompt": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.0",
-    "@babel/core": "^7.2.0",
-    "@babel/node": "^7.2.0",
-    "@babel/preset-env": "^7.2.0",
     "nodemon": "^1.18.7"
   },
   "scripts": {
