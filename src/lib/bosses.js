@@ -20,7 +20,7 @@ var bosses = [
             type : 'boolean',
             assignment : 'update',
             value : true,
-            description : 'You have defeated the wildhunt!'
+            description : 'Objective complete: You have defeated the wildhunt!'
         }
     }
 ];

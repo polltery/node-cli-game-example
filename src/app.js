@@ -1,17 +1,19 @@
+/*jshint esversion: 6 */
 // Load the dev dependencies
-var _ = require('lodash');
-var prompt = require('prompt');
-var colors = require('colors');
-var kcomb = require('foreach-combination');
+const _ = require('lodash');
+const prompt = require('prompt');
+const colors = require('colors');
+const kcomb = require('foreach-combination');
 
 // Get essential data
-var monsters = require('./lib/monsters.js');
-var bosses = require('./lib/bosses.js');
-var specials = require('./lib/specials.js');
-var friends = require('./lib/friends.js');
-var debug = require('./debug.js');
-var config = require('./config.js');
-var battleEngine = require('./battle-engine.js');
+const monsters = require('./lib/monsters.js');
+const bosses = require('./lib/bosses.js');
+const specials = require('./lib/specials.js');
+const friends = require('./lib/friends.js');
+const debug = require('./debug.js');
+const config = require('./config.js');
+const battleEngine = require('./battle-engine.js');
+const player = require('./lib/player.js');
 
 // Add type because they are going to be merged in the map
 for(var i = 0; i < monsters.length; i++){
@@ -29,26 +31,6 @@ for(var i = 0; i < friends.length; i++){
 
 // Setup intial settings, player and map
 var totalPlayers = config.totalPlayers;
-var player = {
-    name : 'Geralt of Rivia',
-    power : 15,
-    party : [], // If the player meets a friend unit then their details are pushed to this array
-    prev_x : 0, // previous x of player
-    prev_y : 0, // previous y of player
-    x : 0, // Current x of player 
-    y : 0, // Current y of player
-    freePass : 0, // If 1 or more then the player is allowed to move to a tile without fighting
-    resolve : true, // Is the player in a fight?
-    conflict : {
-        enemy : undefined // If the player is in a fight then who is the player fighting?
-    },
-    end : false, // has the game ended?
-    turn : 0, // Counter for no. of turns player has played 
-    objectives : {
-        ciri : false, // has the player found the ciri tile?
-        wildHunt : false // Has the player defeated wildHunt?
-    }
-};
 
 // Map properties
 var map_width = config.map_width;
@@ -82,14 +64,14 @@ function setupGame(){
         if(totalPlayers !== 1){
             console.log('Sorry, '+totalPlayers+' players are not supported yet');
         }else{
-            startGame();
+            startGame(true);
         }
     });
 }
 
-function startGame(){
+function startGame(isNextTurn){
     //debug.show2dArrayContents(map);
-    console.log('TURN : '+player.turn);
+    console.log('TURN : '+ isNextTurn ? ++player.turn : player.turn);
     displayMap(map);
     displayPosition(player);
     displayMovementOptions(getMovementOptions(player),player);
@@ -106,12 +88,11 @@ function startGame(){
         switch(nextTile.type){
             case 'blocked' :
                 console.log('The option selected is blocked, you can\'t move');
-                startGame();
+                startGame(false);
                 break;
             case 'safe' :
                 movePlayerTowards(result.question);
-                player.turn++;
-                startGame();
+                encounter(nextTile);
                 break;
             case 'special' :
                 switch(nextTile.aquiredBy.effect){
@@ -121,8 +102,7 @@ function startGame(){
                         console.log('scroch tile blocks your path');
                         break;
                 }
-                player.turn++;
-                startGame();
+                startGame(true);
                 break;
             case 'monster' :
                 movePlayerTowards(result.question);
@@ -136,21 +116,18 @@ function startGame(){
                     if(tile.type !== "safe" && player.freePass === 0){
                         encounter(tile.aquiredBy);
                     }else{
-                        player.turn++;
-                        startGame();
+                        startGame(true);
                     }
                 }
                 break;
             case 'boss' : 
             case 'friend' :
                 movePlayerTowards(result.question);
-                var tile = nextTile;
-                if(tile.explored === false){
-                    updateTile(tile);
-                    encounter(tile.aquiredBy);
+                if(nextTile.explored === false){
+                    updateTile(nextTile);
+                    encounter(nextTile.aquiredBy);
                 }else{
-                    player.turn++;
-                    startGame();
+                    startGame(true);
                 }
             break;
         }
@@ -174,21 +151,27 @@ function endGame(){
 function postBattleEncounter(){
     if(player.end === false){
         if(player.resolve === false){
-            player.turn++;
             console.log('TURN : '+player.turn);
             console.log('You conflict with '+colors.bold(player.conflict.enemy.name)+' is still not resolved');
             battleEngine.initateBattle(player,player.conflict.enemy,postBattleEncounter);
         }else{
-            map[player.x][player.y].type = "player";
-            map[player.x][player.y].aquiredBy = player;
-            map[player.prev_x][player.prev_y].type = "safe";
-            map[player.prev_x][player.prev_y].aquiredBy = undefined;
-            player.turn++;
-            startGame();
+            updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+            startGame(true);
         }
     }else{
         endGame();
     }
+}
+
+function updateNextAndPreviousMapTiles(x,y,prev_x,prev_y,nextType,nextAquiredBy,prevType,prevAquiredBy){
+    map[x][y].type = nextType;
+    map[x][y].aquiredBy = nextAquiredBy;
+    map[prev_x][prev_y].type = prevType;
+    map[prev_x][prev_y].aquiredBy = prevAquiredBy;
+}
+
+function updateNextAndPreviousMapTilesAfterPlayerMovement(player,prevType,prevAquiredBy){
+    updateNextAndPreviousMapTiles(player.x,player.y,player.prev_x,player.prev_y,'player',player,prevType,prevAquiredBy);
 }
 
 function postBossEncounter(reward){
@@ -218,12 +201,8 @@ function postBossEncounter(reward){
             require : false
         }, function(err,result){
             if(player.end === false){
-                map[player.x][player.y].type = "player";
-                map[player.x][player.y].aquiredBy = player;
-                map[player.prev_x][player.prev_y].type = "safe";
-                map[player.prev_x][player.prev_y].aquiredBy = undefined;
-                player.turn++;
-                startGame();
+                updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                startGame(true);
             }else{
                 endGame();
             }
@@ -237,20 +216,16 @@ function movePlayerTowards(direction){
     if(direction.length === 1){
         switch(direction){
             case 'S' : 
-                player.prev_y = player.y;
-                player.y = player.y+1;
+                player.prev_y = player.y++;
                 break;
             case 'N' : 
-                player.prev_y = player.y;
-                player.y = player.y-1;
+                player.prev_y = player.y--;
                 break;
             case 'E' :
-                player.prev_x = player.x;
-                player.x = player.x+1;
+                player.prev_x = player.x++;
                 break;
             case 'W' :
-                player.prev_x = player.x;
-                player.x = player.x-1;
+                player.prev_x = player.x--;
                 break;
         }
     }else{
@@ -277,6 +252,8 @@ function getObjectFromCurrentPosition(x,y,direction){
             return map[x+1][y+1];
         case 'SW' :
             return map[x-1][y-1];
+        default:
+            return map[x][y];
     }
 }
 
@@ -292,6 +269,7 @@ function encounter(object){
             break;
         case 'special' : 
             // do action based on special name
+            break;
         case 'boss' :
             // do action based on boss name
             battleEngine.initiateBossBattle(player,object,postBossEncounter);
@@ -308,12 +286,15 @@ function encounter(object){
             }else{
                 // add friend to party
             }
+            break;
         case 'safe' :
             // Simply move
+            postBattleEncounter();
+            break;
     }
 }
 
-// Function for creating a 2d ARRAY ASSHOLES!
+// Function for creating a 2d ARRAY!
 function create2dArray(numrows, numcols, initial){
    var arr = [];
    for (var i = 0; i < numrows; ++i){
@@ -376,13 +357,13 @@ function getMovementOptions(player){
         options.push('N');
     }
     if(player.y !== map_height-1){
-        options.push('S')
+        options.push('S');
     }
     if(player.x !== 0){
         options.push('W');
     }
     if(player.x !== map_width-1){
-        options.push('E')
+        options.push('E');
     }
     kcomb(options,2,function(x,y){
         if((x === 'N' || x === 'S')){
@@ -410,11 +391,11 @@ function createMapFromArray(type){
                     aquiredBy : sample,
                     type : sample.type,
                     explored : false
-                }
+                };
             }
         }
     }
-};
+}
 
 function getFullDirection(direction){
     if(direction.length === 1){
