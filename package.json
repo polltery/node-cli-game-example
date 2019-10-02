@@ -15,9 +15,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --exec babel-node src/app.js",
-    "build": "babel src --out-dir dist",
-    "serve": "node dist/app.js"
+    "serve": "node src/app.js"
   },
   "keywords": [
     "witcher",

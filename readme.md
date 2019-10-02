@@ -26,8 +26,7 @@ How to run?
 This project uses babel with nodemon now,
 1. clone repo
 2. `npm install`
-3. `npm run build` or .. `npm start` and ignore 4
-4. `npm run serve`
+3. `npm run serve`
 
 ![Preview](./assets/example.gif?raw=true "Preview")
 
