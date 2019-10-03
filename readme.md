@@ -2,7 +2,7 @@ Node CLI game example
 ===
 About the project
 ---
-There is a 4x4 map laid out with with each tile unexplored, players are required to explore the map and encounter beasts, firends, bosses and blockages.
+There is a 4x4 map laid out with with each tile unexplored, players are required to explore the map and encounter beasts, friends, bosses and blockages.
 
 The concept is called "Finding Ciri", where you are Geralt of Rivia, Ciri has ran away and you have to find her! You can also play this with [Gwent cards](https://i.ytimg.com/vi/SkfzMVySZ74/maxresdefault.jpg).
 
