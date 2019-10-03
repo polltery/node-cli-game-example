@@ -70,7 +70,7 @@ function setupGame(){
 }
 
 function startGame(isNextTurn){
-    debug.show2dArrayContents(map);
+    // debug.show2dArrayContents(map);
     console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
     displayMap(map);
     displayPosition(player);
