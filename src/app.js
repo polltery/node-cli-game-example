@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/* jshint esversion: 6*/
 // Load the dev dependencies
 const _ = require('lodash');
 const prompt = require('prompt');
@@ -17,11 +17,6 @@ const player = require('./lib/player.js');
 
 // Map properties
 var map = mapEngine.map;
-
-
-var map_width = config.map_width;
-var map_height = config.map_height;
-var map = create2dArray(map_width,map_height,0);
 
 // Add type because they are going to be merged in the map
 for(var i = 0; i < monsters.length; i++){

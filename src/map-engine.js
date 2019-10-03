@@ -1,3 +1,4 @@
+/* jshint esversion: 6*/
 const _ = require('lodash');
 const kcomb = require('foreach-combination');
 const colors = require('colors');
@@ -20,7 +21,7 @@ function create2dArray(numrows, numcols, initial){
        arr[i] = columns;
     }
     return arr;
- }
+}
 
 var mapEngine = {};
 
@@ -46,7 +47,7 @@ mapEngine.displayMap = function(map){
         }
         console.log(row);
     }
-}
+};
 
 mapEngine.createMapFromArray = function(type){
     var samples = _.sampleSize(type, type.length);
@@ -62,7 +63,7 @@ mapEngine.createMapFromArray = function(type){
             }
         }
     }
-}
+};
 
 
 mapEngine.getFullDirection = function(direction){
@@ -76,11 +77,11 @@ mapEngine.getFullDirection = function(direction){
     }else{
         return this.getFullDirection(direction.substring(0,1))+'-'+this.getFullDirection(direction.substring(1,2));
     }
-}
+};
 
 mapEngine.displayPosition = function(player){
     console.log('you are at '+player.x+','+player.y);
-}
+};
 
 mapEngine.getMovementOptions = function(player){
     var options = [];
@@ -106,7 +107,7 @@ mapEngine.getMovementOptions = function(player){
         }
     });
     return options;
-}
+};
 
 mapEngine.obtainMovementOptionInfo = function(position){
     if(position.explored === false){
@@ -114,7 +115,7 @@ mapEngine.obtainMovementOptionInfo = function(position){
     }else{
         return position.type;
     }
-}
+};
 
 mapEngine.displayMovementOptions = function(movementOptions, player){
     console.log('Here are your movement options..'.bold);
@@ -150,7 +151,7 @@ mapEngine.displayMovementOptions = function(movementOptions, player){
     for(var i = 0; i < movementOptions.length; i++){
         console.log(colors.cyan(movementOptions[i]) + colors.dim('('+this.getFullDirection(movementOptions[i])+')')+' : ' + colors.cyan(movementOptionInfos[i]));
     }
-}
+};
 
 mapEngine.getObjectFromCurrentPosition = function(x,y,direction){
     switch(direction){
@@ -173,7 +174,7 @@ mapEngine.getObjectFromCurrentPosition = function(x,y,direction){
         default:
             return map[x][y];
     }
-}
+};
 
 mapEngine.movePlayerTowards = function(direction){
     switch(direction){
@@ -210,17 +211,19 @@ mapEngine.movePlayerTowards = function(direction){
             player.prev_y = player.y++;
             break;
     }
-}
+};
 
 mapEngine.updateNextAndPreviousMapTiles = function(x,y,prev_x,prev_y,nextType,nextAquiredBy,prevType,prevAquiredBy){
     map[x][y].type = nextType;
     map[x][y].aquiredBy = nextAquiredBy;
     map[prev_x][prev_y].type = prevType;
     map[prev_x][prev_y].aquiredBy = prevAquiredBy;
-}
+};
 
 mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement = function(player,prevType,prevAquiredBy){
     this.updateNextAndPreviousMapTiles(player.x,player.y,player.prev_x,player.prev_y,'player',player,prevType,prevAquiredBy);
-}
+};
+
 mapEngine.map = map;
+
 module.exports = mapEngine;
