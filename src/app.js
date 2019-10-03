@@ -10,7 +10,6 @@ const bosses = require('./lib/bosses.js');
 const specials = require('./lib/specials.js');
 const friends = require('./lib/friends.js');
 const debug = require('./debug.js');
-const utils = require('./utils.js');
 const mapEngine = require('./map-engine.js');
 const config = require('./config.js');
 const battleEngine = require('./battle-engine.js');
