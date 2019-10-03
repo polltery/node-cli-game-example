@@ -222,5 +222,5 @@ mapEngine.updateNextAndPreviousMapTiles = function(x,y,prev_x,prev_y,nextType,ne
 mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement = function(player,prevType,prevAquiredBy){
     this.updateNextAndPreviousMapTiles(player.x,player.y,player.prev_x,player.prev_y,'player',player,prevType,prevAquiredBy);
 }
-
+mapEngine.map = map;
 module.exports = mapEngine;
