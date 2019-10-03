@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const prompt = require('prompt');
 const colors = require('colors');
-const kcomb = require('foreach-combination');
 
 // Get essential data
 const monsters = require('./lib/monsters.js');
@@ -11,9 +10,18 @@ const bosses = require('./lib/bosses.js');
 const specials = require('./lib/specials.js');
 const friends = require('./lib/friends.js');
 const debug = require('./debug.js');
+const mapEngine = require('./map-engine.js');
 const config = require('./config.js');
 const battleEngine = require('./battle-engine.js');
 const player = require('./lib/player.js');
+
+// Map properties
+var map = mapEngine.map;
+
+
+var map_width = config.map_width;
+var map_height = config.map_height;
+var map = create2dArray(map_width,map_height,0);
 
 // Add type because they are going to be merged in the map
 for(var i = 0; i < monsters.length; i++){
@@ -32,11 +40,6 @@ for(var i = 0; i < friends.length; i++){
 // Setup intial settings, player and map
 var totalPlayers = config.totalPlayers;
 
-// Map properties
-var map_width = config.map_width;
-var map_height = config.map_height;
-var map = create2dArray(map_width,map_height,0);
-
 // Start prompt
 prompt.start();
 
@@ -50,7 +53,7 @@ function setupGame(){
         type : "player",
         explored : true
     };
-    createMapFromArray(monsters.concat(bosses,specials,friends));
+    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
     //debug.show2dArrayContents(map);
     prompt.get({
         description : "Number of players",
@@ -72,9 +75,9 @@ function setupGame(){
 function startGame(isNextTurn){
     // debug.show2dArrayContents(map);
     console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
-    displayMap(map);
-    displayPosition(player);
-    displayMovementOptions(getMovementOptions(player),player);
+    mapEngine.displayMap(map);
+    mapEngine.displayPosition(player);
+    mapEngine.displayMovementOptions(mapEngine.getMovementOptions(player),player);
     console.log('Please choose one option from the above'.dim);
     prompt.get({
         description : 'Please enter a movement option',
@@ -83,15 +86,15 @@ function startGame(isNextTurn){
         message : 'Please choose an appropriate movement option',
         require : true
     },function(err,result){
-        console.log('You choose '+result.question+' ('+getFullDirection(result.question)+')');
-        var nextTile = getObjectFromCurrentPosition(player.x,player.y,result.question);
+        console.log('You choose '+result.question+' ('+mapEngine.getFullDirection(result.question)+')');
+        var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,result.question);
         switch(nextTile.type){
             case 'blocked' :
                 console.log('The option selected is blocked, you can\'t move');
                 startGame(false);
                 break;
             case 'safe' :
-                movePlayerTowards(result.question);
+                mapEngine.movePlayerTowards(result.question);
                 updateTile(nextTile);
                 encounter(nextTile);
                 break;
@@ -106,19 +109,19 @@ function startGame(isNextTurn){
                 startGame(true);
                 break;
             case 'monster' :
-                movePlayerTowards(result.question);
+                mapEngine.movePlayerTowards(result.question);
                 updateTile(nextTile);
                 if(player.freePass === 0){
                     encounter(nextTile.aquiredBy);
                 }else{
                     console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
-                    updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                    mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
                     startGame(true);
                 }
                 break;
             case 'boss' : 
             case 'friend' :
-                movePlayerTowards(result.question);
+                mapEngine.movePlayerTowards(result.question);
                 if(nextTile.explored === false){
                     updateTile(nextTile);
                     encounter(nextTile.aquiredBy);
@@ -151,23 +154,12 @@ function postBattleEncounter(){
             console.log('You conflict with '+colors.bold(player.conflict.enemy.name)+' is still not resolved');
             battleEngine.initateBattle(player,player.conflict.enemy,postBattleEncounter);
         }else{
-            updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+            mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
             startGame(true);
         }
     }else{
         endGame();
     }
-}
-
-function updateNextAndPreviousMapTiles(x,y,prev_x,prev_y,nextType,nextAquiredBy,prevType,prevAquiredBy){
-    map[x][y].type = nextType;
-    map[x][y].aquiredBy = nextAquiredBy;
-    map[prev_x][prev_y].type = prevType;
-    map[prev_x][prev_y].aquiredBy = prevAquiredBy;
-}
-
-function updateNextAndPreviousMapTilesAfterPlayerMovement(player,prevType,prevAquiredBy){
-    updateNextAndPreviousMapTiles(player.x,player.y,player.prev_x,player.prev_y,'player',player,prevType,prevAquiredBy);
 }
 
 function postBossEncounter(reward){
@@ -197,7 +189,7 @@ function postBossEncounter(reward){
             require : false
         }, function(err,result){
             if(player.end === false){
-                updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
                 startGame(true);
             }else{
                 endGame();
@@ -205,66 +197,6 @@ function postBossEncounter(reward){
         });
     }else{
         endGame();
-    }
-}
-
-function movePlayerTowards(direction){
-    switch(direction){
-        case 'S' : 
-            player.prev_x = player.x;
-            player.prev_y = player.y++;
-            break;
-        case 'N' : 
-            player.prev_x = player.x;
-            player.prev_y = player.y--;
-            break;
-        case 'E' :
-            player.prev_x = player.x++;
-            player.prev_y = player.y;
-            break;
-        case 'W' :
-            player.prev_x = player.x--;
-            player.prev_y = player.y;
-            break;
-        case 'NE':
-            player.prev_x = player.x++;
-            player.prev_y = player.y--;
-            break;
-        case 'NW':
-            player.prev_x = player.x--;
-            player.prev_y = player.y--;
-            break;
-        case 'SE':
-            player.prev_x = player.x++;
-            player.prev_y = player.y++;
-            break;
-        case 'SW':
-            player.prev_x = player.x--;
-            player.prev_y = player.y++;
-            break;
-    }
-}
-
-function getObjectFromCurrentPosition(x,y,direction){
-    switch(direction){
-        case 'S' :
-            return map[x][y+1];
-        case 'N' :
-            return map[x][y-1];
-        case 'E' :
-            return map[x+1][y];
-        case 'W' :
-            return map[x-1][y];
-        case 'NE' :
-            return map[x+1][y-1];
-        case 'NW' :
-            return map[x-1][y-1];
-        case 'SE' : 
-            return map[x+1][y+1];
-        case 'SW' :
-            return map[x-1][y+1];
-        default:
-            return map[x][y];
     }
 }
 
@@ -305,142 +237,15 @@ function encounter(object){
     }
 }
 
-// Function for creating a 2d ARRAY!
 function create2dArray(numrows, numcols, initial){
-   var arr = [];
-   for (var i = 0; i < numrows; ++i){
-      var columns = [];
-      for (var j = 0; j < numcols; ++j){
-         columns[j] = initial;
-      }
-      arr[i] = columns;
+
+    var arr = [];
+    for (var i = 0; i < numrows; ++i){
+       var columns = [];
+       for (var j = 0; j < numcols; ++j){
+          columns[j] = initial;
+       }
+       arr[i] = columns;
     }
     return arr;
-}
-
-function displayMovementOptions(movementOptions, player){
-    console.log('Here are your movement options..'.bold);
-    var movementOptionInfos = [];
-    for(var i = 0; i < movementOptions.length; i++){
-        switch(movementOptions[i]){
-            case 'N' : 
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x][player.y-1]));
-                break;
-            case 'S' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x][player.y+1]));
-                break;
-            case 'E' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x+1][player.y]));
-                break;
-            case 'W' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x-1][player.y]));
-                break;
-            case 'NE' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x+1][player.y-1]));
-                break;
-            case 'NW' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x-1][player.y-1]));
-                break;
-            case 'SE' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x+1][player.y+1]));
-                break;
-            case 'SW' :
-                movementOptionInfos.push(obtainMovementOptionInfo(map[player.x-1][player.y+1]));
-                break;
-        }
-    }
-    for(var i = 0; i < movementOptions.length; i++){
-        console.log(colors.cyan(movementOptions[i]) + colors.dim('('+getFullDirection(movementOptions[i])+')')+' : ' + colors.cyan(movementOptionInfos[i]));
-    }
-}
-
-function obtainMovementOptionInfo(position){
-    if(position.explored === false){
-        return 'unknown';
-    }else{
-        return position.type;
-    }
-}
-
-function getMovementOptions(player){
-    var options = [];
-    if(player.y !== 0){
-        options.push('N');
-    }
-    if(player.y !== map_height-1){
-        options.push('S');
-    }
-    if(player.x !== 0){
-        options.push('W');
-    }
-    if(player.x !== map_width-1){
-        options.push('E');
-    }
-    kcomb(options,2,function(x,y){
-        if((x === 'N' || x === 'S')){
-            if((x === 'N' && y === 'S') || (x === 'S' && y === 'N')){
-                // Do nothing.
-            }else{
-                options.push(x+y);
-            }
-        }
-    });
-    return options;
-}
-
-function displayPosition(player){
-    console.log('you are at '+player.x+','+player.y);
-}
-
-function createMapFromArray(type){
-    var samples = _.sampleSize(type, type.length);
-    for(var i = 0; i < map_width; i++){
-        for(var j = 0; j < map_height; j++){
-            if(!(i === 0 && j === 0)){
-            var sample = samples.pop();
-                map[i][j] = {
-                    aquiredBy : sample,
-                    type : sample === undefined ? 'safe' : sample.type,
-                    explored : false
-                };
-            }
-        }
-    }
-}
-
-function getFullDirection(direction){
-    if(direction.length === 1){
-        switch(direction){
-            case 'N' : return 'North';
-            case 'S' : return 'South';
-            case 'W' : return 'West';
-            case 'E' : return 'East';
-        }
-    }else{
-        return getFullDirection(direction.substring(0,1))+'-'+getFullDirection(direction.substring(1,2));
-    }
-}
-
-function displayMap(map){
-    console.log('MAP VIEW'.bgWhite.black);
-    for(var i = 0; i < map_width; i++){
-        var row = '';
-        for(var j = 0; j < map_height; j++){
-            if(map[j][i].explored){
-                switch(map[j][i].type){
-                    case 'player' :
-                        row += colors.cyan(' * ');
-                        break;
-                    case 'blocked' :
-                        row += colors.gray(' * ');
-                        break;
-                    default :
-                        row += ' * ';
-                }
-            }else{
-                row += ' * '.red;
-            }
-        }
-        console.log(row);
-    }
-}
+ }
