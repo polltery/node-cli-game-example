@@ -55,7 +55,6 @@ mapEngine.createMapFromArray = function(type){
 
 
 mapEngine.getFullDirection = function(direction){
-    if (direction && direction !== '') {
         if(direction.length === 1){
             switch(direction){
                 case 'N' : return 'North';
@@ -66,7 +65,6 @@ mapEngine.getFullDirection = function(direction){
         }else{
             return this.getFullDirection(direction.substring(0,1))+'-'+this.getFullDirection(direction.substring(1,2));
         }
-    }
 };
 
 mapEngine.displayPosition = function(player){
