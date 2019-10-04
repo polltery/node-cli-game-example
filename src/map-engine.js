@@ -5,23 +5,11 @@ const colors = require('colors');
 const player = require('./lib/player.js');
 
 const config = require('./config.js');
+const utils = require('./utils.js');
 
 var map_width = config.map_width;
 var map_height = config.map_height;
-var map = create2dArray(map_width,map_height,0);
-
-function create2dArray(numrows, numcols, initial){
-
-    var arr = [];
-    for (var i = 0; i < numrows; ++i){
-       var columns = [];
-       for (var j = 0; j < numcols; ++j){
-          columns[j] = initial;
-       }
-       arr[i] = columns;
-    }
-    return arr;
-}
+var map = utils.create2dArray(map_width,map_height,0);
 
 var mapEngine = {};
 
