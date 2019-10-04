@@ -84,7 +84,7 @@ mapEngine.displayPosition = function(player){
 };
 
 /** Available tiles to which player
- * can move to from his current position
+ * can move from his current position
  * @param {object} player - The player (Geralt of Rivia)
  * */
 mapEngine.getMovementOptions = function(player){
