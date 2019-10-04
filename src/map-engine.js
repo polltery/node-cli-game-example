@@ -55,15 +55,17 @@ mapEngine.createMapFromArray = function(type){
 
 
 mapEngine.getFullDirection = function(direction){
-    if(direction.length === 1){
-        switch(direction){
-            case 'N' : return 'North';
-            case 'S' : return 'South';
-            case 'W' : return 'West';
-            case 'E' : return 'East';
+    if (direction && direction !== '') {
+        if(direction.length === 1){
+            switch(direction){
+                case 'N' : return 'North';
+                case 'S' : return 'South';
+                case 'W' : return 'West';
+                case 'E' : return 'East';
+            }
+        }else{
+            return this.getFullDirection(direction.substring(0,1))+'-'+this.getFullDirection(direction.substring(1,2));
         }
-    }else{
-        return this.getFullDirection(direction.substring(0,1))+'-'+this.getFullDirection(direction.substring(1,2));
     }
 };
 
