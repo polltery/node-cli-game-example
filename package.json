@@ -1,6 +1,6 @@
 {
   "name": "finding-ciri-cli-game",
-  "version": "1.0.2",
+  "version": "2.1.0",
   "description": "A game based on the witcher universe made for CLI",
   "main": "app.js",
   "dependencies": {
