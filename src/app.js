@@ -77,9 +77,10 @@ function startGame(isNextTurn){
     prompt.get({
         description : 'Please enter a movement option',
         type : 'string',
-        pattern : /^([NSEW]|[NS][EW])$/,
+        pattern : /^([NSEW]|[NS][EW])$/i,
         message : 'Please choose an appropriate movement option',
-        require : true
+        require : true,
+        before: val => val.toUpperCase()
     },function(err,result){
         console.log('You choose '+result.question+' ('+mapEngine.getFullDirection(result.question)+')');
         var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,result.question);
