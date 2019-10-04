@@ -52,11 +52,11 @@ function setupGame(){
     //debug.show2dArrayContents(map);
     prompt.get({
         description : "Number of players",
-        type : 'number',
-        pattern : /1/,
+        type : 'integer',
         message : 'Only 1 player is allowed to play',
         default : 1,
-        required : true
+        required : true,
+        conform: val => val === 1
     },function (err, result) {
         totalPlayers = parseInt(result.question);
         if(totalPlayers !== 1){
