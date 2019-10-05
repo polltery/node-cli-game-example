@@ -71,6 +71,11 @@ mapEngine.displayPosition = function(player){
     console.log('you are at '+player.x+','+player.y);
 };
 
+/** Available tiles to which player
+ * can move from his current position
+ * @param {object} player - The player (Geralt of Rivia)
+ * @returns {string []} An array containing options where the player is allowed to move to
+ * */
 mapEngine.getMovementOptions = function(player){
     var options = [];
     if(player.y !== 0){
@@ -97,6 +102,12 @@ mapEngine.getMovementOptions = function(player){
     return options;
 };
 
+/** If the player explored a tile, it's type is returned
+ *  which can be safe, blocked, monster, boss
+ *  If the player didn't explored a tile, 'unknown' is returned
+ *  @param {object} position - Player's next position
+ *  @returns {string} 'unknown' | any other defined types such as 'special', 'monster', 'boss', 'friend'
+ * */
 mapEngine.obtainMovementOptionInfo = function(position){
     if(position.explored === false){
         return 'unknown';
@@ -104,6 +115,7 @@ mapEngine.obtainMovementOptionInfo = function(position){
         return position.type;
     }
 };
+
 
 mapEngine.displayMovementOptions = function(movementOptions, player){
     console.log('Here are your movement options..'.bold);
@@ -141,6 +153,13 @@ mapEngine.displayMovementOptions = function(movementOptions, player){
     }
 };
 
+/** Returns the card (monster, boss, friend, special) in the tile
+ *  according to the player's current position in the map and the direction choice
+ *  @param {number} x - Player's position on the x axis.
+ *  @param {number} y - Player's position on the y axis.
+ *  @param {string} direction - Choice from user input.
+ *  @returns {Object} returns the map tile from the specified direction.
+ * */
 mapEngine.getObjectFromCurrentPosition = function(x,y,direction){
     switch(direction){
         case 'S' :
