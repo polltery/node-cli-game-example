@@ -14,26 +14,14 @@ const mapEngine = require('./map-engine.js');
 const config = require('./config.js');
 const battleEngine = require('./battle-engine.js');
 const player = require('./lib/player.js');
+const utils = require('./utils.js');
 
 // Map properties
 var map = mapEngine.map;
 
-// Add type because they are going to be merged in the map
-for(var i = 0; i < monsters.length; i++){
-    monsters[i].type = "monster";
-}
-for(var i = 0; i < bosses.length; i++){
-    bosses[i].type = "boss";
-}
-for(var i = 0; i < specials.length; i++){
-    specials[i].type = "special";
-}
-for(var i = 0; i < friends.length; i++){
-    friends[i].type = "friend";
-}
-
 // Setup intial settings, player and map
 var totalPlayers = config.totalPlayers;
+utils.assignTypesToCards();
 
 // Start prompt
 prompt.start();
@@ -115,7 +103,7 @@ function startGame(isNextTurn){
                     startGame(true);
                 }
                 break;
-            case 'boss' : 
+            case 'boss' :
             case 'friend' :
                 mapEngine.movePlayerTowards(result.question);
                 if(nextTile.explored === false){
