@@ -58,16 +58,7 @@ function setupMapMatrix(){
 }
 
 // Setup, Start and end game
-function setupGame(){
-    mapEngine.init();
-    map = mapEngine.map;
-
-    map[0][0] = {
-        aquiredBy : player,
-        type : "player",
-        explored : true
-    };
-    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+function setupGame(){ 
     //debug.show2dArrayContents(map);
     prompt.get({
         description : "Number of players",
@@ -87,6 +78,15 @@ function setupGame(){
 }
 
 function startGame(isNextTurn){
+    mapEngine.init();
+    map = mapEngine.map;
+
+    map[0][0] = {
+        aquiredBy : player,
+        type : "player",
+        explored : true
+    };
+    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
     // debug.show2dArrayContents(map);
     console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
     mapEngine.displayMap(map);
