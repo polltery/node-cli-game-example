@@ -14,26 +14,24 @@ const mapEngine = require('./map-engine.js');
 const config = require('./config.js');
 const battleEngine = require('./battle-engine.js');
 const player = require('./lib/player.js');
+const utils = require('./utils.js');
 
 // Map properties
 var map = mapEngine.map;
 
-// Add type because they are going to be merged in the map
-for(var i = 0; i < monsters.length; i++){
-    monsters[i].type = "monster";
-}
-for(var i = 0; i < bosses.length; i++){
-    bosses[i].type = "boss";
-}
-for(var i = 0; i < specials.length; i++){
-    specials[i].type = "special";
-}
-for(var i = 0; i < friends.length; i++){
-    friends[i].type = "friend";
-}
-
 // Setup intial settings, player and map
 var totalPlayers = config.totalPlayers;
+utils.assignTypesToCards();
+
+
+var movementSchema = {
+    description : 'Please enter a movement option',
+    type : 'string',
+    pattern : new RegExp("^(" + mapEngine.getMovementOptions(player).join("|") + ")$", "i"),
+    message : 'Please choose an appropriate movement option',
+    require : true,
+    before: val => val.toUpperCase()
+}
 
 // Start prompt
 prompt.start();
@@ -41,14 +39,37 @@ prompt.start();
 // Entry point
 setupGame();
 
+// setup map matrix size
+function setupMapMatrix(){ 
+    prompt.get({
+        description : `Size of Map default is 4x4`,
+        type : 'integer',
+        message : 'Minimum: 4, Maximum: 99',
+        default : 4,
+        required : true,
+        conform: val => val <= 99 && val >= 4
+    },function (err, result) {
+        let value = parseInt(result.question, 10);
+        config.map_height = value;
+        config.map_width = value;
+
+        mapEngine.init();
+        map = mapEngine.map;
+
+        map[0][0] = {
+            aquiredBy : player,
+            type : "player",
+            explored : true
+        };
+
+        mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+
+        return startGame(true);
+    });
+}
+
 // Setup, Start and end game
-function setupGame(){
-    map[0][0] = {
-        aquiredBy : player,
-        type : "player",
-        explored : true
-    };
-    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+function setupGame(){ 
     //debug.show2dArrayContents(map);
     prompt.get({
         description : "Number of players",
@@ -62,7 +83,7 @@ function setupGame(){
         if(totalPlayers !== 1){
             console.log('Sorry, '+totalPlayers+' players are not supported yet');
         }else{
-            startGame(true);
+            setupMapMatrix()
         }
     });
 }
@@ -73,60 +94,77 @@ function startGame(isNextTurn){
     mapEngine.displayMap(map);
     mapEngine.displayPosition(player);
     mapEngine.displayMovementOptions(mapEngine.getMovementOptions(player),player);
+    getUserMovementChoice();
+}
+
+function getUserMovementChoice() {
     console.log('Please choose one option from the above'.dim);
-    prompt.get({
-        description : 'Please enter a movement option',
-        type : 'string',
-        pattern : new RegExp("^(" + mapEngine.getMovementOptions(player).join("|") + ")$", "i"),
-        message : 'Please choose an appropriate movement option',
-        require : true,
-        before: val => val.toUpperCase()
-    },function(err,result){
-        console.log('You choose '+result.question+' ('+mapEngine.getFullDirection(result.question)+')');
-        var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,result.question);
-        switch(nextTile.type){
-            case 'blocked' :
-                console.log('The option selected is blocked, you can\'t move');
-                startGame(false);
-                break;
-            case 'safe' :
-                mapEngine.movePlayerTowards(result.question);
-                updateTile(nextTile);
-                encounter(nextTile);
-                break;
-            case 'special' :
-                switch(nextTile.aquiredBy.effect){
-                    case 'block' :
-                        nextTile.explored = true;
-                        nextTile.type = 'blocked';
-                        console.log('scroch tile blocks your path');
-                        break;
-                }
-                startGame(true);
-                break;
-            case 'monster' :
-                mapEngine.movePlayerTowards(result.question);
-                updateTile(nextTile);
-                if(player.freePass === 0){
-                    encounter(nextTile.aquiredBy);
-                }else{
-                    console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
-                    mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
-                    startGame(true);
-                }
-                break;
-            case 'boss' : 
-            case 'friend' :
-                mapEngine.movePlayerTowards(result.question);
-                if(nextTile.explored === false){
-                    updateTile(nextTile);
-                    encounter(nextTile.aquiredBy);
-                }else{
-                    startGame(true);
-                }
-                break;
+    prompt.get(movementSchema,(err, result) => turn(err, result));
+}
+
+function turn(err,result){
+    if (!err) {
+        var choice = result.question;
+        var choiceIsValid = validateUserChoice(choice);
+        if (choiceIsValid) {
+            play(choice);
+        } else {
+            getUserMovementChoice();
         }
-    });
+    } else {
+        console.log(err);
+    }
+}
+
+function validateUserChoice(choice) {
+    return (choice && choice !== '' && (choice === 'N' || choice === 'W' || choice === 'E' || choice === 'S' || choice === 'NE' || choice === 'NW' || choice === 'SE' || choice === 'SW'));
+}
+
+function play(choice) {
+    console.log('You choose '+choice+' ('+mapEngine.getFullDirection(choice)+')');
+    var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,choice);
+    switch(nextTile.type){
+        case 'blocked' :
+            console.log('The option selected is blocked, you can\'t move');
+            startGame(false);
+            break;
+        case 'safe' :
+            mapEngine.movePlayerTowards(choice);
+            updateTile(nextTile);
+            encounter(nextTile);
+            break;
+        case 'special' :
+            switch(nextTile.aquiredBy.effect){
+                case 'block' :
+                    nextTile.explored = true;
+                    nextTile.type = 'blocked';
+                    console.log('scroch tile blocks your path');
+                    break;
+            }
+            startGame(true);
+            break;
+        case 'monster' :
+            mapEngine.movePlayerTowards(choice);
+            updateTile(nextTile);
+            if(player.freePass === 0){
+                encounter(nextTile.aquiredBy);
+            }else{
+                console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
+                mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                startGame(true);
+            }
+            break;
+        case 'boss' :
+        case 'friend' :
+            mapEngine.movePlayerTowards(choice);
+            if(nextTile.explored === false){
+                updateTile(nextTile);
+                encounter(nextTile.aquiredBy);
+            }else{
+                startGame(true);
+            }
+            break;
+    }
 }
 
 function endGame(){
@@ -232,16 +270,3 @@ function encounter(object){
             break;
     }
 }
-
-function create2dArray(numrows, numcols, initial){
-
-    var arr = [];
-    for (var i = 0; i < numrows; ++i){
-       var columns = [];
-       for (var j = 0; j < numcols; ++j){
-          columns[j] = initial;
-       }
-       arr[i] = columns;
-    }
-    return arr;
- }
