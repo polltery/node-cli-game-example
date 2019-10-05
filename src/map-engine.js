@@ -7,11 +7,19 @@ const player = require('./lib/player.js');
 const config = require('./config.js');
 const utils = require('./utils.js');
 
-var map_width = config.map_width;
-var map_height = config.map_height;
-var map = utils.create2dArray(map_width,map_height,0);
+var map_width;
+var map_height;
+var map;
 
 var mapEngine = {};
+
+mapEngine.init = function() {
+    map_width = config.map_width;
+    map_height = config.map_height;
+    map = utils.create2dArray(map_width, map_height, 0);
+
+    mapEngine.map = map;
+}
 
 mapEngine.displayMap = function(map){
     console.log('MAP VIEW'.bgWhite.black);
@@ -230,7 +238,5 @@ mapEngine.updateNextAndPreviousMapTiles = function(x,y,prev_x,prev_y,nextType,ne
 mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement = function(player,prevType,prevAquiredBy){
     this.updateNextAndPreviousMapTiles(player.x,player.y,player.prev_x,player.prev_y,'player',player,prevType,prevAquiredBy);
 };
-
-mapEngine.map = map;
 
 module.exports = mapEngine;

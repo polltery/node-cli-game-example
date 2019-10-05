@@ -39,14 +39,37 @@ prompt.start();
 // Entry point
 setupGame();
 
+// setup map matrix size
+function setupMapMatrix(){ 
+    prompt.get({
+        description : `Size of Map default is 4x4`,
+        type : 'integer',
+        message : 'Minimum: 4, Maximum: 99',
+        default : 4,
+        required : true,
+        conform: val => val <= 99 && val >= 4
+    },function (err, result) {
+        let value = parseInt(result.question, 10);
+        config.map_height = value;
+        config.map_width = value;
+
+        mapEngine.init();
+        map = mapEngine.map;
+
+        map[0][0] = {
+            aquiredBy : player,
+            type : "player",
+            explored : true
+        };
+
+        mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+
+        return startGame(true);
+    });
+}
+
 // Setup, Start and end game
-function setupGame(){
-    map[0][0] = {
-        aquiredBy : player,
-        type : "player",
-        explored : true
-    };
-    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+function setupGame(){ 
     //debug.show2dArrayContents(map);
     prompt.get({
         description : "Number of players",
@@ -60,7 +83,7 @@ function setupGame(){
         if(totalPlayers !== 1){
             console.log('Sorry, '+totalPlayers+' players are not supported yet');
         }else{
-            startGame(true);
+            setupMapMatrix()
         }
     });
 }
