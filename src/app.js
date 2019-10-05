@@ -53,6 +53,17 @@ function setupMapMatrix(){
         config.map_height = value;
         config.map_width = value;
 
+        mapEngine.init();
+        map = mapEngine.map;
+
+        map[0][0] = {
+            aquiredBy : player,
+            type : "player",
+            explored : true
+        };
+
+        mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
+
         return startGame(true);
     });
 }
@@ -78,15 +89,6 @@ function setupGame(){
 }
 
 function startGame(isNextTurn){
-    mapEngine.init();
-    map = mapEngine.map;
-
-    map[0][0] = {
-        aquiredBy : player,
-        type : "player",
-        explored : true
-    };
-    mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
     // debug.show2dArrayContents(map);
     console.log('TURN : ' + (isNextTurn ? ++player.turn : player.turn));
     mapEngine.displayMap(map);
