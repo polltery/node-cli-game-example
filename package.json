@@ -1,6 +1,6 @@
 {
   "name": "finding-ciri-cli-game",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A Node CLI game where players explore a map to complete objectives",
   "main": "app.js",
   "dependencies": {
