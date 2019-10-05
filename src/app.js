@@ -64,6 +64,22 @@ function setupMapMatrix(){
 
         mapEngine.createMapFromArray(monsters.concat(bosses,specials,friends));
 
+        setupDifficulty()
+    });
+}
+
+// setup difficulty of the game
+function setupDifficulty(){ 
+    const difficulties = {E:25, M:15, H:10}
+    prompt.get({
+        description : `Select difficulty`,
+        type : 'string',
+        message : '(E) EASY, (M) MEDIUM, (H) HARD',
+        default : 'E',
+        required : true,
+        conform: val => !!difficulties[val]
+    },function (err, result) {
+        player.power = difficulties[result.question];
         return startGame(true);
     });
 }
