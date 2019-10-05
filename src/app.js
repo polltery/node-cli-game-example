@@ -23,6 +23,16 @@ var map = mapEngine.map;
 var totalPlayers = config.totalPlayers;
 utils.assignTypesToCards();
 
+
+var movementSchema = {
+    description : 'Please enter a movement option',
+    type : 'string',
+    pattern : /^([NSEW]|[NS][EW])$/i,
+    message : 'Please choose an appropriate movement option',
+    require : true,
+    before: val => val.toUpperCase()
+}
+
 // Start prompt
 prompt.start();
 
@@ -61,60 +71,77 @@ function startGame(isNextTurn){
     mapEngine.displayMap(map);
     mapEngine.displayPosition(player);
     mapEngine.displayMovementOptions(mapEngine.getMovementOptions(player),player);
+    getUserMovementChoice();
+}
+
+function getUserMovementChoice() {
     console.log('Please choose one option from the above'.dim);
-    prompt.get({
-        description : 'Please enter a movement option',
-        type : 'string',
-        pattern : /^([NSEW]|[NS][EW])$/i,
-        message : 'Please choose an appropriate movement option',
-        require : true,
-        before: val => val.toUpperCase()
-    },function(err,result){
-        console.log('You choose '+result.question+' ('+mapEngine.getFullDirection(result.question)+')');
-        var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,result.question);
-        switch(nextTile.type){
-            case 'blocked' :
-                console.log('The option selected is blocked, you can\'t move');
-                startGame(false);
-                break;
-            case 'safe' :
-                mapEngine.movePlayerTowards(result.question);
-                updateTile(nextTile);
-                encounter(nextTile);
-                break;
-            case 'special' :
-                switch(nextTile.aquiredBy.effect){
-                    case 'block' :
-                        nextTile.explored = true;
-                        nextTile.type = 'blocked';
-                        console.log('scroch tile blocks your path');
-                        break;
-                }
-                startGame(true);
-                break;
-            case 'monster' :
-                mapEngine.movePlayerTowards(result.question);
-                updateTile(nextTile);
-                if(player.freePass === 0){
-                    encounter(nextTile.aquiredBy);
-                }else{
-                    console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
-                    mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
-                    startGame(true);
-                }
-                break;
-            case 'boss' :
-            case 'friend' :
-                mapEngine.movePlayerTowards(result.question);
-                if(nextTile.explored === false){
-                    updateTile(nextTile);
-                    encounter(nextTile.aquiredBy);
-                }else{
-                    startGame(true);
-                }
-                break;
+    prompt.get(movementSchema,(err, result) => turn(err, result));
+}
+
+function turn(err,result){
+    if (!err) {
+        var choice = result.question;
+        var choiceIsValid = validateUserChoice(choice);
+        if (choiceIsValid) {
+            play(choice);
+        } else {
+            getUserMovementChoice();
         }
-    });
+    } else {
+        console.log(err);
+    }
+}
+
+function validateUserChoice(choice) {
+    return (choice && choice !== '' && (choice === 'N' || choice === 'W' || choice === 'E' || choice === 'S' || choice === 'NE' || choice === 'NW' || choice === 'SE' || choice === 'SW'));
+}
+
+function play(choice) {
+    console.log('You choose '+choice+' ('+mapEngine.getFullDirection(choice)+')');
+    var nextTile = mapEngine.getObjectFromCurrentPosition(player.x,player.y,choice);
+    switch(nextTile.type){
+        case 'blocked' :
+            console.log('The option selected is blocked, you can\'t move');
+            startGame(false);
+            break;
+        case 'safe' :
+            mapEngine.movePlayerTowards(choice);
+            updateTile(nextTile);
+            encounter(nextTile);
+            break;
+        case 'special' :
+            switch(nextTile.aquiredBy.effect){
+                case 'block' :
+                    nextTile.explored = true;
+                    nextTile.type = 'blocked';
+                    console.log('scroch tile blocks your path');
+                    break;
+            }
+            startGame(true);
+            break;
+        case 'monster' :
+            mapEngine.movePlayerTowards(choice);
+            updateTile(nextTile);
+            if(player.freePass === 0){
+                encounter(nextTile.aquiredBy);
+            }else{
+                console.log('You used your free pass to skip the monster ' + colors.bold(nextTile.aquiredBy.name) + '. Free passes remaining ' + (--player.freePass));
+                mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                startGame(true);
+            }
+            break;
+        case 'boss' :
+        case 'friend' :
+            mapEngine.movePlayerTowards(choice);
+            if(nextTile.explored === false){
+                updateTile(nextTile);
+                encounter(nextTile.aquiredBy);
+            }else{
+                startGame(true);
+            }
+            break;
+    }
 }
 
 function endGame(){
