@@ -77,7 +77,7 @@ function startGame(isNextTurn){
     prompt.get({
         description : 'Please enter a movement option',
         type : 'string',
-        pattern : new RegExp("^(" + mapEngine.getMovementOptions(player).join("|") + ")$"),
+        pattern : new RegExp("^(" + mapEngine.getMovementOptions(player).join("|") + ")$", "i"),
         message : 'Please choose an appropriate movement option',
         require : true,
         before: val => val.toUpperCase()
