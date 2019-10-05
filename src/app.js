@@ -27,7 +27,7 @@ utils.assignTypesToCards();
 var movementSchema = {
     description : 'Please enter a movement option',
     type : 'string',
-    pattern : /^([NSEW]|[NS][EW])$/i,
+    pattern : new RegExp("^(" + mapEngine.getMovementOptions(player).join("|") + ")$", "i"),
     message : 'Please choose an appropriate movement option',
     require : true,
     before: val => val.toUpperCase()
