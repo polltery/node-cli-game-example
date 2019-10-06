@@ -1,7 +1,12 @@
+var _ = require('lodash');
 var colors = require('colors');
 var prompt = require('prompt');
-var _ = require('lodash');
 var spinner = require('cli-spinner').Spinner;
+
+var gameEngine = require('./game-engine.js');
+var mapEngine = require('./map-engine.js');
+
+var player = require('./lib/player.js');
 
 var loading = new spinner('Fighting...')
 
@@ -108,6 +113,99 @@ battleEngine.initiateBossBattle = function(player,boss,callback){
         },2000);
 
     });
+}
+
+battleEngine.postBattleEncounter = function(){
+    if(player.end === false){
+        if(player.resolve === false){
+            console.log('TURN : '+ (++player.turn));
+            console.log('You conflict with '+colors.bold(player.conflict.enemy.name)+' is still not resolved');
+            battleEngine.initateBattle(player,player.conflict.enemy,battleEngine.postBattleEncounter);
+        }else{
+            mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+            gameEngine.startGame(true, player, mapEngine);
+        }
+    }else{
+        gameEngine.endGame();
+    }
+}
+
+battleEngine.postBossEncounter = function(reward){
+    if(reward !== undefined){
+        switch(reward.depth){
+            case 0:
+                switch(reward.assignment){
+                    case 'add' :
+                        player[reward.property] = reward.value;
+                        break;
+                }
+                break;
+            case 1:
+                var properties = reward.property.match(/[a-zA-Z]+/g);
+                switch(reward.assignment){
+                    case 'update' :
+                        player[properties[0]][properties[1]] = reward.value; 
+                        break;
+                }
+                break;
+        }
+        console.log(reward.description);
+        prompt.get({
+            description : 'Continue?',
+            type : 'boolean',
+            default : true,
+            require : false
+        }, function(err,result){
+            if(player.end === false){
+                mapEngine.updateNextAndPreviousMapTilesAfterPlayerMovement(player, 'safe', undefined);
+                gameEngine.startGame(true,  player, mapEngine, gameEngine);
+            }else{
+                gameEngine.endGame();
+            }
+        });
+    }else{
+        gameEngine.endGame();
+    }
+}
+
+battleEngine.updateTile = function(tile){
+    tile.explored = true;
+}
+
+battleEngine.encounter = function (object, playerObj, mapEngineObjt, gameEngineObj){
+    mapEngine = mapEngineObjt;
+    //player = playerObj;
+    gameEngine = gameEngineObj;
+    console.log('You have encounterd a '+colors.bold(object.type)+' tile containing '+colors.bold(object.name));
+    switch(object.type){
+        case 'monster' : 
+            battleEngine.initateBattle(player,object,battleEngine.postBattleEncounter);
+            break;
+        case 'special' : 
+            // do action based on special name
+            break;
+        case 'boss' :
+            // do action based on boss name
+            battleEngine.initiateBossBattle(player,object,battleEngine.postBossEncounter);
+            break;
+        case 'friend' :
+            // do action based on friend name
+            if(object.name === 'Cirilla Fiona Elen Riannon'){
+                player.objectives.ciri = true;
+                if(player.objectives.wildHunt === true){
+                    gameEngine.endGame();
+                }else{
+                    // prompt
+                }
+            }else{
+                // add friend to party
+            }
+            break;
+        case 'safe' :
+            // Simply move
+            postBattleEncounter();
+            break;
+    }
 }
 
 function getTotalPower(player){

@@ -2,7 +2,7 @@
 const _ = require('lodash');
 const kcomb = require('foreach-combination');
 const colors = require('colors');
-const player = require('./lib/player.js');
+var player = require('./lib/player.js');
 
 const config = require('./config.js');
 const utils = require('./utils.js');
