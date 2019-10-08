@@ -21,6 +21,8 @@ Basic Rules
 
 # How to run?
 
+Before you run, make sure you have [node.js (includes NPM)](https://nodejs.org/en/download/).
+
 1. clone repo
 2. `npm install`
 3. `npm run serve` or `node src/app.js`
