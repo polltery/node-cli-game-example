@@ -71,7 +71,7 @@ function setupMapMatrix(){
 // setup difficulty of the game
 function setupDifficulty(){ 
     prompt.get({
-        description : `Select difficulty`,
+        description : `Select difficulty (E: Easy, M: Medium, H: Hard)`,
         type : 'string',
         message : '(E) EASY, (M) MEDIUM, (H) HARD',
         default : 'E',
